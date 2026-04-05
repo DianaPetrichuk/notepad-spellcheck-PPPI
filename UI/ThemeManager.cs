@@ -4,19 +4,43 @@ using System.Windows.Forms;
 
 namespace NotepadApp.UI
 {
-    // Версия: 1.0
-    // Менеджер тем оформления
-    public enum Theme { Light, Dark, System }
+    /// <summary>
+    /// Перечисление доступных тем оформления интерфейса.
+    /// </summary>
+    public enum Theme
+    {
+        /// <summary>Светлая тема.</summary>
+        Light,
+        /// <summary>Тёмная тема.</summary>
+        Dark,
+        /// <summary>Системная тема (определяется настройками ОС).</summary>
+        System
+    }
 
+    /// <summary>
+    /// Менеджер тем оформления интерфейса.
+    /// Отвечает за применение и хранение текущей темы приложения.
+    /// </summary>
     public class ThemeManager
     {
+        /// <summary>
+        /// Текущая активная тема оформления.
+        /// </summary>
         private Theme currentTheme;
 
+        /// <summary>
+        /// Инициализирует менеджер тем со значением по умолчанию — системная тема.
+        /// </summary>
         public ThemeManager()
         {
             currentTheme = Theme.System;
         }
 
+        /// <summary>
+        /// Применяет выбранную тему оформления к указанной форме.
+        /// </summary>
+        /// <param name="form">Форма, к которой применяется тема.</param>
+        /// <param name="theme">Тема оформления для применения.</param>
         public void ApplyTheme(Form form, Theme theme)
         {
             currentTheme = theme;
@@ -37,6 +61,10 @@ namespace NotepadApp.UI
             }
         }
 
+        /// <summary>
+        /// Возвращает текущую активную тему оформления.
+        /// </summary>
+        /// <returns>Значение перечисления <see cref="Theme"/>.</returns>
         public Theme GetCurrentTheme()
         {
             return currentTheme;

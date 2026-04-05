@@ -4,19 +4,38 @@ using System.Windows.Forms;
 
 namespace NotepadApp.Core
 {
-    // Версия: 1.0
-    // Модуль работы с файлами
+    /// <summary>
+    /// Модуль работы с файлами.
+    /// Обеспечивает создание, открытие и сохранение документов
+    /// в форматах TXT и RTF.
+    /// </summary>
     public class FileManager
     {
+        /// <summary>
+        /// Путь к текущему открытому файлу.
+        /// Null если файл ещё не сохранялся.
+        /// </summary>
         private string currentFilePath;
+
+        /// <summary>
+        /// Флаг наличия несохранённых изменений в документе.
+        /// </summary>
         private bool hasUnsavedChanges;
 
+        /// <summary>
+        /// Инициализирует модуль работы с файлами.
+        /// </summary>
         public FileManager()
         {
             currentFilePath = null;
             hasUnsavedChanges = false;
         }
 
+        /// <summary>
+        /// Открывает диалог выбора файла и возвращает его содержимое.
+        /// </summary>
+        /// <returns>Содержимое выбранного файла в виде строки,
+        /// или null если пользователь отменил выбор.</returns>
         public string OpenFile()
         {
             using (OpenFileDialog dialog = new OpenFileDialog())
@@ -31,6 +50,11 @@ namespace NotepadApp.Core
             return null;
         }
 
+        /// <summary>
+        /// Сохраняет содержимое документа в текущий файл.
+        /// Если файл не был сохранён ранее — вызывает диалог сохранения.
+        /// </summary>
+        /// <param name="content">Текст документа для сохранения.</param>
         public void SaveFile(string content)
         {
             if (currentFilePath == null)
@@ -42,6 +66,10 @@ namespace NotepadApp.Core
             }
         }
 
+        /// <summary>
+        /// Открывает диалог сохранения и записывает документ по выбранному пути.
+        /// </summary>
+        /// <param name="content">Текст документа для сохранения.</param>
         public void SaveFileAs(string content)
         {
             using (SaveFileDialog dialog = new SaveFileDialog())
@@ -56,6 +84,11 @@ namespace NotepadApp.Core
             }
         }
 
+        /// <summary>
+        /// Проверяет наличие несохранённых изменений и при необходимости
+        /// предлагает пользователю сохранить документ.
+        /// </summary>
+        /// <returns>False если пользователь отменил операцию, иначе True.</returns>
         public bool CheckUnsavedChanges()
         {
             if (hasUnsavedChanges)
@@ -69,6 +102,9 @@ namespace NotepadApp.Core
             return true;
         }
 
+        /// <summary>
+        /// Помечает документ как имеющий несохранённые изменения.
+        /// </summary>
         public void MarkAsChanged()
         {
             hasUnsavedChanges = true;

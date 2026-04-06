@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NotepadPro — Блокнот с проверкой орфографии</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #f5f7f2;
+      --surface:   #eef2e8;
+      --card:      #ffffff;
+      --dark:      #2b3d26;
+      --mid:       #4a6741;
+      --accent:    #7aab6e;
+      --muted:     #8fa883;
+      --text:      #1e2b1a;
+      --text-soft: #5a7054;
+      --border:    #d4e0cc;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; font-size: 16px; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(245,247,242,0.93); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 5%; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--dark); }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { text-decoration: none; font-size: 0.875rem; font-weight: 500; color: var(--text-soft); transition: color .2s; }
+    .nav-links a:hover { color: var(--dark); }
+
+    .hero {
+      min-height: 100vh; padding: 120px 5% 80px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+      background: linear-gradient(160deg, #f0f4ea 0%, #e8f0e0 60%, #ddebd4 100%);
+    }
+    .hero-text h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.4rem,5vw,3.8rem); line-height: 1.15; color: var(--dark); margin-bottom: 1.2rem; }
+    .hero-text h1 span { color: var(--mid); }
+    .hero-text p { font-size: 1.05rem; color: var(--text-soft); max-width: 480px; margin-bottom: 2rem; font-weight: 300; }
+    .hero-badges { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .badge { display: inline-block; padding: .3rem .85rem; border: 1px solid var(--accent); border-radius: 999px; font-size: .8rem; font-weight: 500; color: var(--mid); background: rgba(122,171,110,.08); }
+
+    .hero-visual { display: flex; justify-content: center; animation: float 5s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+    .window { width: 100%; max-width: 440px; border-radius: 12px; overflow: hidden; box-shadow: 0 24px 64px rgba(43,61,38,.18); background: #fff; }
+    .window-bar { background: var(--dark); padding: .75rem 1rem; display: flex; align-items: center; gap: .5rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r{background:#e06c75}.dot.y{background:#e5c07b}.dot.g{background:var(--accent)}
+    .window-title { flex:1; text-align:center; font-size:.75rem; color:rgba(255,255,255,.4); }
+    .window-menu { background: var(--mid); padding: .3rem 1rem; display: flex; gap: 1.2rem; }
+    .window-menu span { font-size:.7rem; color:rgba(255,255,255,.7); }
+    .window-body { background: #fafcf8; padding: 1.25rem 1.5rem; min-height: 220px; font-size: .82rem; color: #2b3d26; line-height: 1.8; }
+    .window-body .sq { border-bottom: 2px solid #e06c75; }
+    .window-statusbar { background: var(--surface); border-top: 1px solid var(--border); padding: .35rem 1rem; font-size: .68rem; color: var(--muted); display: flex; justify-content: space-between; }
+
+    section { padding: 90px 5%; }
+    .section-label { font-size: .75rem; font-weight: 500; letter-spacing: .15em; text-transform: uppercase; color: var(--accent); margin-bottom: .75rem; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem,3.5vw,2.6rem); color: var(--dark); margin-bottom: 1rem; line-height: 1.2; }
+    .section-sub { font-size: 1rem; color: var(--text-soft); max-width: 560px; font-weight: 300; }
+
+    #features { background: var(--bg); }
+    .features-header { margin-bottom: 3.5rem; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 1.5rem; }
+    .feature-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: transform .25s, box-shadow .25s; }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(43,61,38,.1); }
+    .feature-icon { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg,var(--accent),var(--mid)); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.1rem; color: #fff; }
+    .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--dark); margin-bottom: .5rem; }
+    .feature-card p { font-size: .875rem; color: var(--text-soft); font-weight: 300; }
+
+    #modules { background: var(--dark); }
+    #modules .section-label { color: var(--accent); }
+    #modules .section-title { color: #fff; }
+    #modules .section-sub { color: rgba(255,255,255,.45); }
+    .modules-header { margin-bottom: 3rem; }
+    .modules-list { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 1px; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; }
+    .module-item { padding: 1.5rem 1.75rem; background: rgba(255,255,255,.03); display: flex; gap: 1rem; align-items: flex-start; transition: background .2s; }
+    .module-item:hover { background: rgba(122,171,110,.08); }
+    .module-num { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--accent); opacity: .55; line-height: 1; min-width: 28px; }
+    .module-info h4 { font-size: .925rem; font-weight: 500; color: #fff; margin-bottom: .25rem; }
+    .module-info p { font-size: .8rem; color: rgba(255,255,255,.4); font-weight: 300; }
+
+    #themes { background: var(--surface); }
+    .themes-header { margin-bottom: 3rem; }
+    .themes-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+    .theme-card { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(43,61,38,.07); }
+    .theme-preview { height: 130px; padding: .75rem; }
+    .theme-preview.light{background:#f8fbf6}.theme-preview.dark{background:#1e2b1a}.theme-preview.sys{background:#eef4e8}
+    .tp-bar { height: 18px; border-radius: 4px 4px 0 0; margin-bottom: 6px; display: flex; align-items: center; padding: 0 8px; gap: 6px; }
+    .tp-bar.light{background:var(--mid)}.tp-bar.dark{background:#3a5234}.tp-bar.sys{background:var(--accent)}
+    .tp-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.5); }
+    .tp-line { height:6px; border-radius:3px; margin:5px 0; opacity:.22; }
+    .theme-preview.light .tp-line{background:var(--dark)}.theme-preview.dark .tp-line{background:#fff}.theme-preview.sys .tp-line{background:var(--dark)}
+    .theme-label { background: var(--card); padding: .9rem 1.1rem; border-top: 1px solid var(--border); }
+    .theme-label strong { display:block; font-size:.9rem; color:var(--dark); margin-bottom:.2rem; }
+    .theme-label span { font-size:.78rem; color:var(--text-soft); font-weight:300; }
+
+    #about { background: var(--bg); display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+    .about-text .section-title { margin-bottom: 1.25rem; }
+    .about-text p { font-size:.95rem; color:var(--text-soft); font-weight:300; margin-bottom:1rem; }
+    .tech-stack { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1.5rem; }
+    .tech-pill { padding:.35rem .9rem; background:var(--surface); border:1px solid var(--border); border-radius:999px; font-size:.8rem; color:var(--mid); font-weight:500; }
+    .about-stats { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.5rem; }
+    .stat-card .num { font-family:'Playfair Display',serif; font-size:2.4rem; color:var(--dark); line-height:1; margin-bottom:.4rem; }
+    .stat-card .lbl { font-size:.8rem; color:var(--text-soft); font-weight:300; }
+
+    footer { background:var(--dark); color:rgba(255,255,255,.35); text-align:center; padding:2.5rem 5%; font-size:.82rem; font-weight:300; }
+    footer strong { color:rgba(255,255,255,.65); font-weight:500; }
+
+    .fade-in { opacity:0; transform:translateY(24px); transition:opacity .6s ease, transform .6s ease; }
+    .fade-in.visible { opacity:1; transform:translateY(0); }
+
+    @media(max-width:768px){
+      .hero{grid-template-columns:1fr;padding-top:100px}
+      .hero-visual{display:none}
+      #about{grid-template-columns:1fr;gap:2.5rem;padding:60px 5%}
+      .themes-row{grid-template-columns:1fr}
+      .nav-links{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">NotepadPro</div>
+  <ul class="nav-links">
+    <li><a href="#features">Возможности</a></li>
+    <li><a href="#modules">Модули</a></li>
+    <li><a href="#themes">Темы</a></li>
+    <li><a href="#about">О проекте</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="hero-text fade-in">
+    <h1>Блокнот<br>с <span>проверкой</span><br>орфографии</h1>
+    <p>Текстовый редактор с встроенной проверкой правописания для русского и английского языков, автодополнением и гибкими темами оформления.</p>
+    <div class="hero-badges">
+      <span class="badge">C# / .NET</span>
+      <span class="badge">Windows Forms</span>
+      <span class="badge">RU + EN</span>
+      <span class="badge">10 модулей</span>
+    </div>
+  </div>
+  <div class="hero-visual fade-in">
+    <div class="window">
+      <div class="window-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="window-title">документ.txt — NotepadPro</span>
+      </div>
+      <div class="window-menu">
+        <span>Файл</span><span>Правка</span><span>Вид</span><span>Инструменты</span>
+      </div>
+      <div class="window-body">
+        <p>Добро пожаловать в <strong>NotepadPro</strong>.</p><br>
+        <p>Редактор поддерживает проверку <span class="sq">орфографии</span> на русском и английском языках в режиме реального времени.</p><br>
+        <p>Выберите тему оформления в меню Вид.</p>
+      </div>
+      <div class="window-statusbar">
+        <span>Слов: 21 &nbsp;|&nbsp; Строк: 5</span>
+        <span>RU / EN &nbsp;|&nbsp; Светлая</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="features-header fade-in">
+    <div class="section-label">Возможности</div>
+    <h2 class="section-title">Всё необходимое<br>для работы с текстом</h2>
+    <p class="section-sub">Редактор объединяет базовый функционал блокнота с инструментами профессионального уровня.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card fade-in">
+      <div class="feature-icon">&#10003;</div>
+      <h3>Проверка орфографии</h3>
+      <p>Автоматическое подчёркивание ошибок и варианты замены для русского и английского языков.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:.05s">
+      <div class="feature-icon">&#9998;</div>
+      <h3>Автодополнение</h3>
+      <p>Умные подсказки во время ввода на основе встроенного словаря и истории текста.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:.1s">
+      <div class="feature-icon">&#9680;</div>
+      <h3>Темы оформления</h3>
+      <p>Светлая, тёмная и системная темы. Переключение без перезапуска приложения.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:.15s">
+      <div class="feature-icon">&#128269;</div>
+      <h3>Поиск и замена</h3>
+      <p>Поиск с учётом или без учёта регистра, замена одного или всех вхождений сразу.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:.2s">
+      <div class="feature-icon">&#128190;</div>
+      <h3>Работа с файлами</h3>
+      <p>Открытие, сохранение и создание документов в форматах TXT и RTF.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:.25s">
+      <div class="feature-icon">&#9636;</div>
+      <h3>Статистика текста</h3>
+      <p>Подсчёт символов, слов, строк и абзацев в режиме реального времени.</p>
+    </div>
+  </div>
+</section>
+
+<section id="modules">
+  <div class="modules-header fade-in">
+    <div class="section-label">Архитектура</div>
+    <h2 class="section-title">10 независимых<br>модулей</h2>
+    <p class="section-sub">Каждый модуль отвечает за отдельную область функциональности приложения.</p>
+  </div>
+  <div class="modules-list fade-in">
+    <div class="module-item"><div class="module-num">01</div><div class="module-info"><h4>Интерфейс пользователя</h4><p>Главное окно, меню, панель инструментов</p></div></div>
+    <div class="module-item"><div class="module-num">02</div><div class="module-info"><h4>Проверка орфографии RU</h4><p>Словарь русского языка, подчёркивание ошибок</p></div></div>
+    <div class="module-item"><div class="module-num">03</div><div class="module-info"><h4>Проверка орфографии EN</h4><p>Словарь английского языка, смешанный текст</p></div></div>
+    <div class="module-item"><div class="module-num">04</div><div class="module-info"><h4>Управление темами</h4><p>Светлая, тёмная и системная темы оформления</p></div></div>
+    <div class="module-item"><div class="module-num">05</div><div class="module-info"><h4>Работа с файлами</h4><p>Создание, открытие, сохранение документов</p></div></div>
+    <div class="module-item"><div class="module-num">06</div><div class="module-info"><h4>Поиск и замена</h4><p>Поиск по тексту, массовая замена вхождений</p></div></div>
+    <div class="module-item"><div class="module-num">07</div><div class="module-info"><h4>Автодополнение</h4><p>Подсказки на основе словаря и истории ввода</p></div></div>
+    <div class="module-item"><div class="module-num">08</div><div class="module-info"><h4>Статистика текста</h4><p>Символы, слова, строки, абзацы в реальном времени</p></div></div>
+    <div class="module-item"><div class="module-num">09</div><div class="module-info"><h4>Настройки</h4><p>Шрифт, тема, язык, автосохранение, путь</p></div></div>
+    <div class="module-item"><div class="module-num">10</div><div class="module-info"><h4>Печать</h4><p>Предварительный просмотр, параметры страницы</p></div></div>
+  </div>
+</section>
+
+<section id="themes">
+  <div class="themes-header fade-in">
+    <div class="section-label">Оформление</div>
+    <h2 class="section-title">Три темы на выбор</h2>
+    <p class="section-sub">Тема переключается мгновенно через меню Вид — без перезапуска приложения.</p>
+  </div>
+  <div class="themes-row fade-in">
+    <div class="theme-card">
+      <div class="theme-preview light">
+        <div class="tp-bar light"><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-dot"></div></div>
+        <div class="tp-line" style="width:70%"></div><div class="tp-line" style="width:90%"></div><div class="tp-line" style="width:55%"></div>
+      </div>
+      <div class="theme-label"><strong>Светлая</strong><span>По умолчанию. Белый фон, тёмный текст.</span></div>
+    </div>
+    <div class="theme-card">
+      <div class="theme-preview dark">
+        <div class="tp-bar dark"><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-dot"></div></div>
+        <div class="tp-line" style="width:75%"></div><div class="tp-line" style="width:60%"></div><div class="tp-line" style="width:85%"></div>
+      </div>
+      <div class="theme-label"><strong>Тёмная</strong><span>Снижает нагрузку на зрение при слабом освещении.</span></div>
+    </div>
+    <div class="theme-card">
+      <div class="theme-preview sys">
+        <div class="tp-bar sys"><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-dot"></div></div>
+        <div class="tp-line" style="width:65%"></div><div class="tp-line" style="width:85%"></div><div class="tp-line" style="width:72%"></div>
+      </div>
+      <div class="theme-label"><strong>Системная</strong><span>Автоматически следует настройкам ОС.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="about-text fade-in">
+    <div class="section-label">О проекте</div>
+    <h2 class="section-title">Учебный проект<br>кафедры ПИ</h2>
+    <p>NotepadPro разработан в рамках дисциплины «Профессиональная практика программной инженерии» на кафедре программной инженерии им. Л.П. Фельдмана ФГБОУ ВО «ДонНТУ».</p>
+    <p>Проект демонстрирует применение систем контроля версий, самодокументирующегося кода и разработки пользовательской документации.</p>
+    <div class="tech-stack">
+      <span class="tech-pill">C# .NET</span>
+      <span class="tech-pill">Windows Forms</span>
+      <span class="tech-pill">Git / GitHub</span>
+      <span class="tech-pill">DocBook XML</span>
+    </div>
+  </div>
+  <div class="about-stats fade-in" style="transition-delay:.1s">
+    <div class="stat-card"><div class="num">10</div><div class="lbl">модулей приложения</div></div>
+    <div class="stat-card"><div class="num">2</div><div class="lbl">языка орфографии</div></div>
+    <div class="stat-card"><div class="num">3</div><div class="lbl">темы оформления</div></div>
+    <div class="stat-card"><div class="num">6</div><div class="lbl">лабораторных работ</div></div>
+  </div>
+</section>
+
+<footer>
+  <p><strong>NotepadPro</strong> &nbsp;—&nbsp; Блокнот с проверкой орфографии</p>
+  <p style="margin-top:.5rem">Петричук Диана Александровна, гр. ПИ-22а &nbsp;|&nbsp; ДонНТУ, 2024</p>
+</footer>
+
+<script>
+  const els = document.querySelectorAll('.fade-in');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  els.forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
